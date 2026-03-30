@@ -1,0 +1,23 @@
+# Sample pipeline configuration
+# Before deploying, replace $USER with your username and <kubernetes-cluster-vrn> with your cluster VRN.
+name: $USER-cron-hello-world-pipeline
+description: A sample pipeline to print hello world on a schedule
+tags:
+  - cron
+kubernetes_cluster_vrn: <kubernetes-cluster-vrn>
+namespace: default
+manifest:
+  config:
+    environment_variables:
+      - name: GREETING
+        value: "Hello, World!"
+  triggers:
+    - name: $USER-schedule-5m-trigger
+      vrn: vast:dataengine:triggers:$USER-schedule-5m-trigger
+  function_deployments:
+    - name: $USER-hello-world
+      function_vrn: vast:dataengine:functions:$USER-hello-world
+      revision: 1
+  links:
+      - source: ["$USER-schedule-5m-trigger"]
+        destination: ["$USER-hello-world"]

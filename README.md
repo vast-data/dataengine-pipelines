@@ -2,7 +2,7 @@
 
 # VAST DataEngine Pipelines
 
-A curated list of DataEngine pipeline examples — spanning reference pipelines from the VAST GitHub org and community contributions.
+A curated list of DataEngine pipeline examples, reference pipelines from the VAST GitHub org and community contributions.
 
 ## What is VAST DataEngine?
 
@@ -27,22 +27,29 @@ For a full overview, check out our recent blog post: [VAST DataEngine: Bringing 
 
 Small, self-contained pipelines intended for training and workshop use:
 
+<!-- generate_readme_tables:in-repo:start -->
 | Pipeline | Trigger | Runtime | Description |
 |---|---|---|---|
+| python-cron-hello-world | cron | python | Pipeline with cron trigger that logs hello world. |
+<!-- generate_readme_tables:in-repo:end -->
 
-### Reference Pipelines 
+### Reference Pipelines
 
 Reference pipelines by VAST:
 
+<!-- generate_readme_tables:vast-org:start -->
 | Pipeline | Runtime | Repo | Description |
 |---|---|---|---|
+<!-- generate_readme_tables:vast-org:end -->
 
 ### Community
 
 Pipelines built and maintained by the community:
 
+<!-- generate_readme_tables:community:start -->
 | Pipeline | Runtime | Repo | Author | Description |
 |---|---|---|---|---|
+<!-- generate_readme_tables:community:end -->
 
 ---
 

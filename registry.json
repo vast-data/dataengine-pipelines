@@ -1,1 +1,9 @@
-[]
+[
+    {
+        "section": "in-repo",
+        "name": "python-cron-hello-world",
+        "runtime": "Python 3.12.12",
+        "trigger": "cron",
+        "description": "Pipeline with cron trigger that logs hello world."
+    }
+]
