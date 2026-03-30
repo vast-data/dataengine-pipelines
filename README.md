@@ -28,9 +28,13 @@ For a full overview, check out our recent blog post: [VAST DataEngine: Bringing 
 Small, self-contained pipelines intended for training and workshop use:
 
 <!-- generate_readme_tables:in-repo:start -->
-| Pipeline | Trigger | Runtime | Description |
-|---|---|---|---|
-| python-cron-hello-world | cron | python | Pipeline with cron trigger that logs hello world. |
+| Pipeline | Trigger | Runtime | Link | Description |
+|---|---|---|---|---|
+| python-cron-hello-world | cron | Python 3.12.12 | [link](https://github.com/vast-data/dataengine-pipelines/tree/main/python-cron-hello-world) | Pipeline with cron trigger that logs hello world. |
+| python-s3-hello-world | s3 | Python 3.12.12 |  | **Coming soon:** Pipeline with S3 trigger that retrieves and logs file data. |
+| python-s3-llm | s3 | Python 3.12.12 |  | **Coming soon:** Pipeline with S3 trigger that integrates an LLM API. |
+| python-s3-video-ingestion | s3 | Python 3.12.12 |  | **Coming soon:** Pipeline with S3 trigger for video ingestion. |
+| python-s3-video-embeddings | s3 | Python 3.12.12 |  | **Coming soon:** Pipeline with S3 trigger to generate video embeddings. |
 <!-- generate_readme_tables:in-repo:end -->
 
 ### Reference Pipelines

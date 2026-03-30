@@ -49,7 +49,11 @@ def build_tables(entries: list[dict]) -> dict[str, str]:
         description = e.get("description", "")
 
         if section == "in-repo":
-            in_repo.append([name, e.get("trigger", ""), runtime, description])
+            link = e.get("link", "")
+            link_cell = f"[link]({link})" if link and link != "<link>" else ""
+            if e.get("status") == "planned":
+                description = f"**Coming soon:** {description}"
+            in_repo.append([name, e.get("trigger", ""), runtime, link_cell, description])
         elif section == "vast-org":
             repo = e.get("repo", "")
             repo_link = f"[link]({repo})" if repo else ""
@@ -60,7 +64,7 @@ def build_tables(entries: list[dict]) -> dict[str, str]:
             community.append([name, runtime, repo_link, e.get("author", ""), description])
 
     return {
-        "in-repo": make_table(["Pipeline", "Trigger", "Runtime", "Description"], in_repo),
+        "in-repo": make_table(["Pipeline", "Trigger", "Runtime", "Link", "Description"], in_repo),
         "vast-org": make_table(["Pipeline", "Runtime", "Repo", "Description"], vast_org),
         "community": make_table(["Pipeline", "Runtime", "Repo", "Author", "Description"], community),
     }
