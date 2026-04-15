@@ -6,7 +6,7 @@ A hello world function triggered on a cron schedule. Logs a greeting on initiali
 |---|---|
 | **Trigger** | Cron |
 | **Runtime** | Python 3.12.12 |
-| **Status** | In Progress |
+| **Status** | Complete |
 
 ## Prerequisites
 
@@ -111,7 +111,7 @@ Fill in the following fields:
 
 | Field | Example value | Notes |
 |---|---|---|
-| **Name** | `schedule-5m-trigger` | Must match the trigger name in `pipeline-config.yaml`. The pipeline create step will fail if the trigger does not exist or the name does not match |
+| **Name** | `$USER-schedule-5m-trigger` | Must match the trigger name in `pipeline-config.yaml`. The pipeline create step will fail if the trigger does not exist or the name does not match |
 | **Type** | `Schedule` | |
 | **Cron Expression** | `0 0/5 * ? * * *` | Runs every 5 minutes |
 | **Description** | `Schedule trigger - every 5 minutes` | Optional |

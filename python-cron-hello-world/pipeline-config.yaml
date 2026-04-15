@@ -1,5 +1,5 @@
 # Sample pipeline configuration
-# Before deploying, replace $USER with your username and <kubernetes-cluster-vrn> with your cluster VRN.
+# Before deploying, replace $USER with your username (`echo $USER`)  and <kubernetes-cluster-vrn> with your cluster VRN.
 name: $USER-cron-hello-world-pipeline
 description: A sample pipeline to print hello world on a schedule
 tags:
