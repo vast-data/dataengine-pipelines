@@ -14,8 +14,8 @@
         "runtime": "Python 3.12.12",
         "trigger": "s3",
         "description": "Pipeline with S3 trigger that retrieves and logs file data.",
-        "status": "planned",
-        "link": "<link>"
+        "status": "ready",
+        "link": "https://github.com/vast-data/dataengine-pipelines/tree/main/python-s3-hello-world"
     },
     {
         "section": "in-repo",

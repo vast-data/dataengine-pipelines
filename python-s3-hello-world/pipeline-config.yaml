@@ -1,0 +1,23 @@
+# Sample pipeline configuration
+# Before deploying, replace $USER with your username (`echo $USER`) and <kubernetes-cluster-vrn> with your cluster VRN.
+name: $USER-s3-hello-world-pipeline
+description: A sample pipeline to print hello world on a s3 element created event
+tags:
+  - element-created
+kubernetes_cluster_vrn: <kubernetes-cluster-vrn>
+namespace: default
+manifest:
+  config:
+    environment_variables:
+      - name: GREETING
+        value: "Hello, World!"
+  triggers:
+    - name: $USER-s3-trigger
+      vrn: vast:dataengine:triggers:$USER-s3-trigger
+  function_deployments:
+    - name: $USER-s3-hello-world
+      function_vrn: vast:dataengine:functions:$USER-s3-hello-world
+      revision: 1
+  links:
+      - source: ["$USER-s3-trigger"]
+        destination: ["$USER-s3-hello-world"]
