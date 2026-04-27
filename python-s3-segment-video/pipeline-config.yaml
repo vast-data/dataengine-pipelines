@@ -1,0 +1,22 @@
+# Before deploying, replace $USER with your username (`echo $USER`) and <kubernetes-cluster-vrn> with your cluster VRN.
+name: $USER-s3-segment-video-pipeline
+description: S3-triggered pipeline that segments uploaded .mp4 files into 5-second clips
+tags:
+  - element-created
+  - video
+kubernetes_cluster_vrn: <kubernetes-cluster-vrn>
+namespace: default
+manifest:
+  triggers:
+    - name: $USER-s3-segment-video-trigger
+      vrn: vast:dataengine:triggers:$USER-s3-segment-video-trigger
+  function_deployments:
+    - name: $USER-s3-segment-video
+      function_vrn: vast:dataengine:functions:$USER-s3-segment-video
+      revision: 1
+  links:
+    - source: ["$USER-s3-segment-video-trigger"]
+      destination: ["$USER-s3-segment-video"]
+    # Uncomment to chain output to a downstream VLM function (function-to-function):
+    # - source: ["$USER-s3-segment-video"]
+    #   destination: ["$USER-vlm-embeddings"]

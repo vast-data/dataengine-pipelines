@@ -148,6 +148,21 @@ celerybeat.pid
 config.yaml
 secrets.yaml
 
+# Video files — do not commit (licensing risk). Download sample data separately — see README.
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+*.flv
+*.wmv
+*.m4v
+*.mpg
+*.mpeg
+
+# Local mock output
+segments/
+
 # DataEngine build artifacts
 .vast-build-cache
 .vast-build-cache/

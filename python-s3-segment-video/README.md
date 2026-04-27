@@ -1,3 +1,21 @@
+# python-s3-segment-video
+
+> **Do not commit video files to this repository.** Video files may carry licensing restrictions that could expose the repo to legal risk. All video formats are excluded via `.gitignore`. Download sample data locally for testing — see below.
+
+## Sample Video for Testing
+
+This pipeline requires a `sample.mp4` in the function directory for mock mode (`S3_MOCK=true`).
+
+Download Big Buck Bunny — a free, open-source short film released under [Creative Commons Attribution 3.0 (CC BY 3.0)](https://creativecommons.org/licenses/by/3.0/) by the [Blender Foundation](https://www.blender.org/):
+
+```bash
+curl -L "https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4" -o sample.mp4
+```
+
+**Attribution:** *Big Buck Bunny* © 2008 Blender Foundation | www.bigbuckbunny.org
+
+---
+
 # vast Function
 
 This is a vast DataEngine serverless function written in Python.
