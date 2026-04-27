@@ -32,7 +32,7 @@ Small, self-contained pipelines intended for training and workshop use:
 |---|---|---|---|---|
 | python-cron-hello-world | cron | Python 3.12.12 | [link](https://github.com/vast-data/dataengine-pipelines/tree/main/python-cron-hello-world) | Pipeline with cron trigger that logs hello world. |
 | python-s3-hello-world | s3 | Python 3.12.12 | [link](https://github.com/vast-data/dataengine-pipelines/tree/main/python-s3-hello-world) | Pipeline with S3 trigger that retrieves and logs file data. |
-| python-s3-llm-summary | s3 | Python 3.12.12 |  | Pipeline with S3 trigger that summarizes file contents using an LLM. |
+| python-s3-llm-summary | s3 | Python 3.12.12 | [link](https://github.com/vast-data/dataengine-pipelines/tree/main/python-s3-llm-summary) | Pipeline with S3 trigger that summarizes file contents using an LLM. |
 | python-s3-video-ingestion | s3 | Python 3.12.12 |  | **Coming soon:** Pipeline with S3 trigger for video ingestion. |
 | python-s3-video-embeddings | s3 | Python 3.12.12 |  | **Coming soon:** Pipeline with S3 trigger to generate video embeddings. |
 <!-- generate_readme_tables:in-repo:end -->
