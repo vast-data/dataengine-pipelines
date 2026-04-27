@@ -1,0 +1,22 @@
+{
+  "id": "59e46a1b-b060-49e8-8438-3dc03095a0da",
+  "source": "vastdata.com:trigger1.7c99196c-6c16-4c84-b87d-c1d7861d0ba4",
+  "specversion": "1.0",
+  "type": "vastdata.com:Element.ObjectCreated",
+  "time": "2025-10-10T13:38:09Z",
+  "subject": "vastdata.com:kafka-view.default-topic",
+  "datacontenttype": "application/json",
+  "dataschema": null,
+  "triggerext1": "cli-generated",
+  "triggerext2": "test-event",
+  "data": {
+    "Records": [
+      {
+        "s3": {
+          "bucket": { "name": "your-bucket-name" },
+          "object": { "key": "sample.txt" }
+        }
+      }
+    ]
+  }
+}

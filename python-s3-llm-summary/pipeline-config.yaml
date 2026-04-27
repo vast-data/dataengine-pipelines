@@ -1,0 +1,23 @@
+# Sample pipeline configuration
+# Before deploying, replace $USER with your username (`echo $USER`) and <kubernetes-cluster-vrn> with your cluster VRN.
+name: $USER-s3-llm-summary-pipeline
+description: A sample pipeline to summarize body of text on a s3 element created event
+tags:
+  - element-created
+kubernetes_cluster_vrn: <kubernetes-cluster-vrn>
+namespace: default
+manifest:
+  config:
+    environment_variables:
+      - name: GREETING
+        value: "Hello, World!"
+  triggers:
+    - name: $USER-s3-llm-summary-trigger
+      vrn: vast:dataengine:triggers:$USER-s3-llm-summary-trigger
+  function_deployments:
+    - name: $USER-s3-llm-summary
+      function_vrn: vast:dataengine:functions:$USER-s3-llm-summary
+      revision: 1
+  links:
+    - source: ["$USER-s3-llm-summary-trigger"]
+      destination: ["$USER-s3-llm-summary"]

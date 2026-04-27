@@ -19,12 +19,12 @@
     },
     {
         "section": "in-repo",
-        "name": "python-s3-llm",
+        "name": "python-s3-llm-summary",
         "runtime": "Python 3.12.12",
         "trigger": "s3",
-        "description": "Pipeline with S3 trigger that integrates an LLM API.",
-        "status": "planned",
-        "link": "<link>"
+        "description": "Pipeline with S3 trigger that summarizes file contents using an LLM.",
+        "status": "ready",
+        "link": "https://github.com/vast-data/dataengine-pipelines/tree/main/python-s3-llm-summary"
     },
     {
         "section": "in-repo",

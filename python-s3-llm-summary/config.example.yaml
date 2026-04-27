@@ -1,0 +1,11 @@
+envs:
+  # S3 Configuration
+  S3_MOCK: true                  # set to false to use real S3
+  S3_ENDPOINT_URL: ""              # e.g. https://s3.your-endpoint.com
+  S3_REGION: ""                    # e.g. us-east-1
+
+  # LLM Configuration
+  LLM_MOCK: true                 # set to false to use real LLM
+  LLM_ENDPOINT: ""                 # e.g. http://host.docker.internal:11434 or https://api.openai.com
+  MODEL_NAME: ""                   # e.g. llama3.2 or gpt-4o-mini
+  MAX_TOKENS: "512"

@@ -1,5 +1,6 @@
 # in-repo WIP dataengine functions
 wip/
+CLI.md
 
 # Generated CLI reference docs
 docs/
@@ -143,8 +144,9 @@ celerybeat.pid
 # macOS
 .DS_Store
 
-# DataEngine function config (may contain credentials)
+# DataEngine function config and secrets (may contain credentials)
 config.yaml
+secrets.yaml
 
 # DataEngine build artifacts
 .vast-build-cache
