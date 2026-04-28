@@ -106,24 +106,52 @@ def segment_and_upload(ctx, video_bytes, filename, output_bucket):
         tmp_in_path = tmp_in.name
 
     try:
-        # TODO 2: Load the video with VideoFileClip and calculate total_segments.
-        # Then loop over each segment:
-        # - compute start = i * ctx.segment_duration, end = min(start + ctx.segment_duration, clip.duration)
-        # - slice with clip.subclip(start, end)
-        # - write to a temp .mp4 file: sub.write_videofile(path, codec="libx264", audio=False, logger=None)
-        # - read the bytes back from the temp file
-        # - call sub.close() and gc.collect() after each segment to free memory
-        # Segment key format: segments/{base}_segment_{i:03d}_of_{total:03d}.mp4
+        clip = VideoFileClip(tmp_in_path)
+        total_duration = clip.duration
+        total_segments = math.ceil(total_duration / ctx.segment_duration)
+        ctx.logger.info(f"Video: {total_duration:.2f}s -> {total_segments} x {ctx.segment_duration}s segments")
 
-        # TODO 3: Save each segment.
-        # If ctx.s3_mock:
-        #   os.makedirs("segments", exist_ok=True), write bytes to ./segments/<segment_filename>
-        # Else:
-        #   ctx.s3_client.put_object(Bucket=output_bucket, Key=segment_key, Body=segment_bytes,
-        #     Metadata={"original-video": filename, "segment-number": str(i),
-        #               "total-segments": str(total_segments), "segment-duration": str(ctx.segment_duration)})
-        # Append segment_key to segment_keys after saving.
-        pass
+        for i in range(total_segments):
+            start = i * ctx.segment_duration
+            end = min(start + ctx.segment_duration, total_duration)
+            segment_key = f"segments/{base}_segment_{i+1:03d}_of_{total_segments:03d}.mp4"
+            ctx.logger.info(f"Segment {i+1}/{total_segments}: {start:.1f}s-{end:.1f}s")
+
+            sub = clip.subclip(start, end)
+            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_out:
+                tmp_out_path = tmp_out.name
+            sub.write_videofile(tmp_out_path, codec="libx264", audio=False, logger=None)
+            sub.close()
+
+            with open(tmp_out_path, "rb") as f:
+                segment_bytes = f.read()
+            os.unlink(tmp_out_path)
+            gc.collect()
+
+            if ctx.s3_mock:
+                os.makedirs("segments", exist_ok=True)
+                local_path = os.path.join("segments", os.path.basename(segment_key))
+                with open(local_path, "wb") as f:
+                    f.write(segment_bytes)
+                ctx.logger.info(f"Saved locally: {local_path}")
+            else:
+                ctx.s3_client.put_object(
+                    Bucket=output_bucket,
+                    Key=segment_key,
+                    Body=segment_bytes,
+                    Metadata={
+                        "original-video": filename,
+                        "segment-number": str(i + 1),
+                        "total-segments": str(total_segments),
+                        "segment-duration": str(ctx.segment_duration),
+                    },
+                )
+                ctx.logger.info(f"Uploaded: {segment_key}")
+
+            segment_keys.append(segment_key)
+
+        clip.close()
+        gc.collect()
 
     finally:
         if os.path.exists(tmp_in_path):
