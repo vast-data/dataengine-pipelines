@@ -71,6 +71,16 @@ def handler(ctx, event):
         return {"status": "skipped", "reason": f"Already a segment: {key}"}
 
     output_bucket = ctx.output_bucket or bucket
+    base = os.path.splitext(filename)[0]
+    segment_prefix = f"{base}/"
+
+    if ctx.s3_mock:
+        if os.path.isdir(os.path.join("segments", base)):
+            return {"status": "skipped", "reason": "Segments already exist"}
+    else:
+        resp = ctx.s3_client.list_objects_v2(Bucket=output_bucket, Prefix=segment_prefix, MaxKeys=1)
+        if resp.get("Contents"):
+            return {"status": "skipped", "reason": "Segments already exist"}
 
     if ctx.s3_mock:
         sample_path = os.path.join(os.path.dirname(__file__), "sample.mp4")
@@ -85,8 +95,17 @@ def handler(ctx, event):
 
     segment_keys = segment_and_upload(ctx, video_bytes, filename, output_bucket)
 
-    # TODO 4: Return a result dict with:
-    # status, source_bucket, source_key, output_bucket, segment_keys, segment_count, segment_duration
+    result = {
+        "status": "success",
+        "source_bucket": bucket,
+        "source_key": key,
+        "output_bucket": output_bucket,
+        "segment_keys": segment_keys,
+        "segment_count": len(segment_keys),
+        "segment_duration": ctx.segment_duration,
+    }
+    ctx.logger.info(f"Result: {result}")
+    return result
 
 
 def segment_and_upload(ctx, video_bytes, filename, output_bucket):
@@ -114,8 +133,8 @@ def segment_and_upload(ctx, video_bytes, filename, output_bucket):
         for i in range(total_segments):
             start = i * ctx.segment_duration
             end = min(start + ctx.segment_duration, total_duration)
-            segment_key = f"segments/{base}_segment_{i+1:03d}_of_{total_segments:03d}.mp4"
-            ctx.logger.info(f"Segment {i+1}/{total_segments}: {start:.1f}s-{end:.1f}s")
+            segment_key = f"{base}/{base}_segment_{i+1:03d}_of_{total_segments:03d}.mp4"
+            # ctx.logger.info(f"Segment {i+1}/{total_segments}: {start:.1f}s-{end:.1f}s")
 
             sub = clip.subclip(start, end)
             with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_out:
@@ -129,11 +148,11 @@ def segment_and_upload(ctx, video_bytes, filename, output_bucket):
             gc.collect()
 
             if ctx.s3_mock:
-                os.makedirs("segments", exist_ok=True)
-                local_path = os.path.join("segments", os.path.basename(segment_key))
+                os.makedirs(os.path.join("segments", base), exist_ok=True)
+                local_path = os.path.join("segments", base, os.path.basename(segment_key))
                 with open(local_path, "wb") as f:
                     f.write(segment_bytes)
-                ctx.logger.info(f"Saved locally: {local_path}")
+                # ctx.logger.info(f"Saved locally: {local_path}")
             else:
                 ctx.s3_client.put_object(
                     Bucket=output_bucket,
@@ -146,7 +165,7 @@ def segment_and_upload(ctx, video_bytes, filename, output_bucket):
                         "segment-duration": str(ctx.segment_duration),
                     },
                 )
-                ctx.logger.info(f"Uploaded: {segment_key}")
+                # ctx.logger.info(f"Uploaded: {segment_key}")
 
             segment_keys.append(segment_key)
 
