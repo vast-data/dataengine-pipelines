@@ -1,0 +1,8 @@
+# S3 Configuration
+S3_MOCK: true                 # set to false to use real S3
+S3_ENDPOINT_URL: ""           # e.g. http://s3.your-endpoint.com
+S3_REGION: ""                 # e.g. us-east-1
+
+# Video segmentation
+SEGMENT_DURATION: "5"         # segment length in seconds
+OUTPUT_BUCKET: ""             # leave empty to write segments back to the source bucket

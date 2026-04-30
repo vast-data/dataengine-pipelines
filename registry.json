@@ -28,6 +28,15 @@
     },
     {
         "section": "in-repo",
+        "name": "python-s3-segment-video",
+        "runtime": "Python 3.12.12",
+        "trigger": "s3",
+        "description": "Pipeline with S3 trigger that segments uploaded .mp4 files into fixed-duration clips.",
+        "status": "ready",
+        "link": "https://github.com/vast-data/dataengine-pipelines/tree/main/python-s3-segment-video"
+    },
+    {
+        "section": "in-repo",
         "name": "python-s3-video-ingestion",
         "runtime": "Python 3.12.12",
         "trigger": "s3",
