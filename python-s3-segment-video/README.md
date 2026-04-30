@@ -1,207 +1,206 @@
 # python-s3-segment-video
 
-> **Do not commit video files to this repository.** Video files may carry licensing restrictions that could expose the repo to legal risk. All video formats are excluded via `.gitignore`. Download sample data locally for testing — see below.
+## Overview
 
-## Sample Video for Testing
+An S3-triggered pipeline that downloads an uploaded `.mp4` video, slices it into fixed-duration segments using moviepy, and uploads the segments back to S3. The structured return value (`segment_keys`) is designed to feed into a downstream VLM function.
 
-This pipeline requires a `sample.mp4` in the function directory for mock mode (`S3_MOCK=true`).
+| Field | Value |
+|---|---|
+| **Trigger** | S3 Create Event |
+| **Runtime** | Python 3.12.12 |
+| **Status** | Complete |
 
-Download Big Buck Bunny — a free, open-source short film released under [Creative Commons Attribution 3.0 (CC BY 3.0)](https://creativecommons.org/licenses/by/3.0/) by the [Blender Foundation](https://www.blender.org/):
+> **Do not commit video files to this repository.** All video formats are excluded via `.gitignore`. Download sample data locally — see [Local Development](#local-development).
 
-```bash
-curl -L "https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4" -o sample.mp4
-```
+## Prerequisites
 
-**Attribution:** *Big Buck Bunny* © 2008 Blender Foundation | www.bigbuckbunny.org
-
----
-
-# vast Function
-
-This is a vast DataEngine serverless function written in Python.
+- Access to a VAST DataEngine tenant and container registry (below as `<registry-host>`)
+- `vastde` CLI installed and configured, see [DEVELOPMENT.md](../DEVELOPMENT.md)
+  - run `vastde --version` to check installation
+  - run `vastde functions list` to check that you have DataEngine access
+- An S3 bucket to watch for `.mp4` uploads and an output bucket for segments
 
 ## Project Structure
-    .
-    |- main.py          # Your function handlers (init and handler)
-    |- requirements.txt # Python dependencies
-    |- Aptfile          # System packages
-    |- customDeps	# custom dependencies such as private common libraries
-    |- README.md        # This file
 
-You can optionally create:
-- config.yaml - for environment variables and secrets
-- cloudevent.yaml - for testing with CloudEvents
+    |- main.py                # Function handlers — init, handler, segment_and_upload
+    |- requirements.txt       # Python dependencies
+    |- Aptfile                # System packages
+    |- customDeps             # Custom dependencies such as private common libraries
+    |- config.example.yaml    # Environment variable template, copy to config.yaml and fill in values
+    |- pipeline-config.yaml   # Pipeline definition (trigger → function wiring)
+    |- README.md              # This file
+    |- cloudevent.json        # Sample CloudEvent for local testing with `vastde functions invoke`
+    |- secrets.example.yaml   # Secrets template, copy to secrets.yaml and fill in values
 
-## Development Workflow
+## Configuration
 
-### 1. Building the Function
+Copy `config.example.yaml` to `config.yaml` and fill in your values:
 
-To build your function for deployment:
+```bash
+cp config.example.yaml config.yaml
+```
 
-~~~bash
-vastde functions build <function-name>
-~~~
+Never commit `config.yaml`. It is already included in `.gitignore`.
 
-The build process will:
-- Install system packages from Aptfile
-- Install Python dependencies from requirements.txt
-- Install custom dependencies from customDeps
-- Create a container image ready for deployment
+### Environment Variables
 
-### 2. Running Locally
+| Variable | Required | Description |
+|---|---|---|
+| `S3_MOCK` | No | Set to `true` to use local `sample.mp4` instead of real S3 (default: `false`) |
+| `S3_ENDPOINT_URL` | When `S3_MOCK=false` | S3 endpoint URL (e.g. `http://s3.your-endpoint.com`) |
+| `S3_REGION` | No | S3 region (e.g. `us-east-1`) |
+| `SEGMENT_DURATION` | No | Segment length in seconds (default: `5`) |
+| `OUTPUT_BUCKET` | No | Bucket to write segments to — defaults to the source bucket if not set |
 
-You can run your function locally for testing and development:
+### Secrets
 
-~~~bash
-# Basic local run
-vastde functions localrun <function-name>
+Copy `secrets.example.yaml` to `secrets.yaml` and fill in your values:
 
-# Run with custom port
-vastde functions localrun <function-name> --port 9090
+```bash
+cp secrets.example.yaml secrets.yaml
+```
 
-# Run in detached mode
-vastde functions localrun <function-name> --detach
-~~~
+Never commit `secrets.yaml`. It is already included in `.gitignore`.
 
-### 3. Configuration with config.yaml
+| Secret | Required | Description |
+|---|---|---|
+| `S3_ACCESS_KEY` | When `S3_MOCK=false` | S3 access key |
+| `S3_SECRET_KEY` | When `S3_MOCK=false` | S3 secret key |
 
-Create a config.yaml file to specify environment variables and secrets:
+## Run Function on DataEngine
 
-~~~yaml
-# Environment variables
-envs:
-  DATABASE_URL: "postgresql://localhost:5432/mydb"
-  BUCKET_NAME: "my-bucket"
+Follow these steps to deploy and run the function on DataEngine. For detailed instructions, refer to the [DataEngine Documentation](https://kb.vastdata.com/documentation/docs/version-54-3).
 
-# Secrets (mounted as files in /secrets/)
-secrets:
-  database:
-    username: "dbuser"
-    password: "dbpass"
-  tls:
-    cert: |
-      -----BEGIN CERTIFICATE-----
-      MIIDXTCCAkWgAwIBAgIJAKoK/OvJ8mQkMA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNV
-      -----END CERTIFICATE-----
-    key: |
-      -----BEGIN PRIVATE KEY-----
-      MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC6CvzryfJkJDA
-      -----END PRIVATE KEY-----
-~~~
+> **Note:** Commands use `$USER` (`echo $USER` value) as a prefix for resource names (e.g. `$USER-s3-segment-video`). This avoids naming collisions when multiple users are deploying to a shared tenant.
 
-Run with configuration:
+### 1. Build Function
 
-~~~bash
-vastde functions localrun <function-name> -c config.yaml
-~~~
+Build the function image, then register it as a function in DataEngine:
 
-In your function code, access secrets:
+```bash
+cd python-s3-segment-video
+vastde functions build $USER-s3-segment-video
+```
 
-~~~python
-def init(ctx):
-    # Access environment variables
-    db_url = os.environ.get('DATABASE_URL')
+Push the image to your container registry:
 
-    # Access secrets (available as files in /secrets/)
-    ctx.logger(f"Database username: {ctx.secrets['database']['username']}")
-    ctx.logger(f"TLS cert: {ctx.secrets['tls']['cert']}")
-~~~
+```bash
+docker tag $USER-s3-segment-video:latest <registry-host>/<registry-user>/$USER-s3-segment-video:<version>
+docker push <registry-host>/<registry-user>/$USER-s3-segment-video:<version>
+```
 
-### 4. Invoking with CloudEvents
+Create the function on DataEngine:
 
-Create a cloudevent.yaml file to test your function with CloudEvents:
+```bash
+vastde functions create \
+  --name $USER-s3-segment-video \
+  --container-registry <registry-name-on-vms> \
+  --artifact-source <registry-user>/$USER-s3-segment-video \
+  --image-tag <version>
+```
 
-~~~yaml
-# Example CloudEvent for testing
-specversion: "1.0"
-type: "com.example.someevent"
-source: "/mycontext"
-id: "A234-1234-1234"
-time: "2018-04-05T17:31:00Z"
-datacontenttype: "application/json"
-data:
-  message: "Hello from CloudEvent!"
-  user_id: 12345
-~~~
+### 2. Set up Trigger
 
-Invoke your function with the CloudEvent:
+Navigate to the DataEngine UI and click `Triggers` + `Create Trigger`. Fill in the following fields:
 
-~~~bash
-# Send CloudEvent to local function
-curl -X POST http://localhost:8080/ \
-  -H "Content-Type: application/cloudevents+json" \
-  -d @cloudevent.yaml
+| Field | Example value | Notes |
+|---|---|---|
+| **Name** | `$USER-s3-segment-video-trigger` | Must match the trigger name in `pipeline-config.yaml` |
+| **Trigger Type** | `Element` | |
+| **Source View** | select your S3 bucket | The bucket to watch for `.mp4` uploads |
+| **Element Type** | `Element Created` | |
 
-# Or use the vast CLI
-vastde functions invoke <function-name> -f cloudevent.yaml
-~~~
+Verify via CLI:
 
-### 5. Function Handlers
+```bash
+vastde triggers list
+```
 
-Your function has two main handlers:
+### 3. Deploy Pipeline
 
-#### Init Handler (init)
-Called once when the function starts up. Use this for:
-- Database connections
-- Loading configuration
-- Initializing clients
-- Setting up logging
+Navigate to the DataEngine UI and click `Pipelines` + `Create Pipeline`. Fill in the following fields:
 
-~~~python
-def init(ctx):
-    ctx.logger("Setting up database connection...")
-    # Your initialization code here
-    ctx.logger("Function initialized successfully")
-~~~
+| Field | Example value | Notes |
+|---|---|---|
+| **Name** | `$USER-s3-segment-video-pipeline` | |
+| **Function** | `$USER-s3-segment-video` | Select the function created in step 1 |
+| **Trigger** | `$USER-s3-segment-video-trigger` | Select the trigger created in step 2 |
 
-#### Event Handler (handler)
-Called for each incoming event. Use this for:
-- Processing Events
-- Business logic
-- Returning responses
+Under **Environment Variables**, add:
 
-~~~python
-def handler(ctx, event):
-    ctx.logger(f"Processing event: {event}")
-    event_type = event.type
-    event_data = event.get_data()
+| Key | Value |
+|---|---|
+| `S3_ENDPOINT_URL` | your S3 endpoint |
+| `S3_REGION` | your S3 region |
+| `SEGMENT_DURATION` | `5` |
+| `OUTPUT_BUCKET` | your output bucket name |
 
-    result = process_event(event_data)
+Under **Secrets**, add:
 
-    return {
-        "status": "success",
-        "result": result
-    }
-~~~
+| Key | Value |
+|---|---|
+| `S3_ACCESS_KEY` | your S3 access key |
+| `S3_SECRET_KEY` | your S3 secret key |
 
-### 6. Dependencies
+Deploy the pipeline, then verify it is ready:
 
-Add Python dependencies to requirements.txt:
+```bash
+vastde pipelines list
+```
 
-~~~
-requests==2.31.0
-pandas==2.0.3
-numpy==1.24.3
-~~~
+### 4. Test Pipeline with S3 Upload
 
-Add system packages to Aptfile:
+Upload an `.mp4` file to your source bucket to trigger the pipeline:
 
-~~~
-ffmpeg
-libpq-dev
-~~~
+```bash
+s3cmd put ./sample.mp4 s3://<your-bucket>/sample.mp4
+```
 
-Add common libraries to customDeps:
+Check the output:
 
-~~~
-/opt/shared/common
-/home/user/mylib/
-../some/common/lib
-~~~
+```bash
+vastde logs tail $USER-s3-segment-video-pipeline --function $USER-s3-segment-video --since 1h
+```
 
-### Local Run Common Issues
+Expected output:
 
-1. **Port already in use**: Use a different port with --port
-2. **Permission denied on secrets**: Check that your config.yaml has correct permissions
-3. **Missing dependencies**: Ensure all packages are listed in requirements.txt
-4. **Build failures**: Check the build.log file for detailed error information
+```
+[INFO] Downloading s3://<your-bucket>/sample.mp4
+[INFO] Video: 596.46s -> 120 x 5s segments
+[INFO] Result: {'status': 'success', 'source_bucket': '...', 'segment_count': 120, ...}
+```
+
+## Local Development
+
+### Sample Video
+
+This pipeline requires a `sample.mp4` in the function directory for mock mode (`S3_MOCK=true`). Source any `.mp4` file and place it in the pipeline directory before building.
+
+> **Note:** `sample.mp4` must be present before running `vastde functions build` — it is baked into the Docker image at build time. If you update the file, run `docker rmi <image>` and rebuild.
+
+### Build
+
+```bash
+vastde functions build $USER-s3-segment-video
+```
+
+### Run Locally
+
+```bash
+vastde functions localrun $USER-s3-segment-video -c config.yaml
+```
+
+### Invoke
+
+```bash
+vastde functions invoke --event ./cloudevent.json --url http://localhost:8080/
+```
+
+## Resources
+
+- [DEVELOPMENT.md](../DEVELOPMENT.md): local setup and CLI workflow
+- [CONTRIBUTING.md](../CONTRIBUTING.md): how to contribute
+- [DataEngine Docs](https://kb.vastdata.com/documentation/docs/version-54-3)
+- [DataEngine CLI](https://github.com/vast-data/dataengine-cli)
+- [VAST Community](https://community.vastdata.com/)
+- [VAST Developers](https://www.vastdata.com/developers)
